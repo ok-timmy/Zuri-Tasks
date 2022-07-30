@@ -1,39 +1,82 @@
-const flights = require("../flights.json");
-const fs = require('fs');
+const Flight = require("../models/Flight");
 
-exports.example = (req, res) => {
-  console.log("example");
-  res.send("Flight example");
+
+// Get All Flights
+exports.allFlight = async (req, res) => {
+  try {
+    const flights = await Flight.find();
+    res.status(200).json(flights);
+    console.log("Got all Flights!");
+  } catch (error) {
+    console.log(error);
+  }
 };
 
-exports.allFlight = (req, res) => {
-  res.send(
-    flights
-  );
+//Get Single Flight
+exports.singleFlight = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const flight = await Flight.findById(id);
+    console.log("Flight Found Successfully!");
+    // console.log(post)
+    res.status(200).json(flight);
+  } catch (error) {
+    console.log(error);
+  }
 };
 
-exports.singleFlight = (req, res) => {
-  const id = req.params.id;
-  const singleFlight = flights.find(flight => flight.id == id);
-  res.send(singleFlight);
-};
-
-exports.newFlight = (req, res) => {
-    const newFlight = req.body;
-    const newFlights = flights.push({...newFlight.title});
-    // console.log(flights);
-    // console.log(newFlight);
-    console.log(newFlights);
-    fs.writeFile('../flights.json', JSON.stringify(newFlights), (error)=> {
-        console.log(error)
+// Create New Flight
+exports.newFlight = async (req, res) => {
+  const { title, time, price, date } = req.body;
+  try {
+    const newFlight = new Flight({
+      title,
+      time,
+      price,
+      date,
     });
-    res.send("This flight has been created!");
-}
 
-exports.updateFlight = (req, res) => {
+    const flight = await newFlight.save();
+    console.log("Flight was Created Successfully!!");
+    res.status(200).json(flight);
+  } catch (error) {
+    res.status(500).send(error);
+    console.log(error);
+  }
+};
 
-}
+//Update Flight
+exports.updateFlight = async (req, res) => {
+  const { title, time, price, date } = req.body;
+  try {
+    const updatedFlight = await Flight.findByIdAndUpdate(
+      {_id : req.params.id },
+      {
+        $set: {
+          title,
+          time,
+          price,
+          date,
+        },
+      },
+      {
+        new: true,
+      }
+    );
+    console.log("Flight Updated Successfully!!");
+    res.status(200).json(updatedFlight);
+  } catch (error) {
+    console.log(error);
+  }
+};
 
-exports.deleteFlight = (req, res) => {
-    
-}
+//Delete Flight
+exports.deleteFlight = async(req, res) => {
+  try {
+    await Flight.findByIdAndDelete( req.params.id );
+   console.log("Flight Deleted Successfully!");
+   res.status(200).json("deleted successfully");
+ } catch (error) {
+   console.log(error);
+ }
+};
